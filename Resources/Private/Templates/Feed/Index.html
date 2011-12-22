@@ -1,0 +1,12 @@
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="{language}">
+	<title>{title}</title>
+	<subtitle>{description}</subtitle>
+	<link rel="alternate" type="text/html" href="{url}"/>
+	<id>{host}{url}</id>
+	<updated>{date}</updated>
+	<f:for each="{entries}" as="entry">
+		<entry>
+			<title>{entry.title}</title>
+		</entry>
+	</f:for>
+</feed>
