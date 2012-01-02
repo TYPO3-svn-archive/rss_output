@@ -31,7 +31,21 @@
 class Tx_RssOutput_ViewHelpers_SummaryViewHelper extends Tx_Fluid_Core_ViewHelper_AbstractViewHelper {
 
 	/**
-	 * Generate a summary
+	 *
+	 * @var tslib_cObj
+	 */
+	protected $localCObj;
+
+	/**
+	 * Initialize
+	 *
+	 */
+	public function initialize() {
+		$this->localCObj = t3lib_div::makeInstance('tslib_cObj');
+	}
+
+	/**
+	 * Generate a summary from the RTE
 	 *
 	 * @param string $content
 	 * @param array $configuration
@@ -39,6 +53,11 @@ class Tx_RssOutput_ViewHelpers_SummaryViewHelper extends Tx_Fluid_Core_ViewHelpe
 	 * @return string
 	 */
 	public function render($content, array $configuration) {
+
+		// RTE
+		$config['parseFunc.'] = $GLOBALS['TSFE']->tmpl->setup['lib.']['parseFunc_RTE.'];
+		$config['value'] = $content;
+		$content = $this->localCObj->TEXT($config);
 
 		// thanks to Marius Mühlberger <mm@co-operation.de> for the regular expressions
 		// Remove script-tags with content
@@ -53,7 +72,11 @@ class Tx_RssOutput_ViewHelpers_SummaryViewHelper extends Tx_Fluid_Core_ViewHelpe
 		$pattern[] = '/"( *)javascript( *):([^"]*)"/isU';
 		$replace[] = '""';
 
+		// Remove trailing
+		$pattern[] = '/<p>&nbsp;<\/p>$/isU';
+		$replace[] = '';
 
+		#var_dump($content);
 		// Replaces baseURL link
 		$baseURL = $configuration['baseURL'];
 		if($baseURL) {

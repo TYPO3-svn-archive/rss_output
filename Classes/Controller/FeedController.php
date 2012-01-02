@@ -135,14 +135,7 @@ class Tx_RssOutput_Controller_FeedController extends Tx_Extbase_MVC_Controller_A
 
 		$yaml = new sfYamlParser();
 		$configuration = $yaml->parse($feed['configuration']);
-
-		if (empty($configuration['baseURL'])) {
-			throw new Exception('Exception 1325478745: missing baseUrl setting ', 1325478745);
-		}
-
-		// Add dynamic configuration
-		$configuration['sys_language_uid'] = $this->getLanguage();
-
+		$configuration['sys_language_uid'] = $this->getLanguage(); // Add dynamic configuration
 		$this->checkConfiguration($configuration);
 
 		$entries = $this->recordRepository->find($configuration);
@@ -164,33 +157,47 @@ class Tx_RssOutput_Controller_FeedController extends Tx_Extbase_MVC_Controller_A
 	 * @param array $configuration
 	 */
 	protected function checkConfiguration($configuration) {
-
 		if (empty($configuration['baseURL'])) {
 			throw new Tx_RssOutput_Exception_InvalidConfigurationException('Exception 1325478745: missing baseURL setting ', 1325478745);
 		}
 	}
 
 	/**
-	 * Get a list that is suitable for an Ajax
+	 * Returns HTML to advertize a feed on the Frontend
 	 *
-	 * @return void
+	 * @return string
 	 */
-	public function listAjaxAction() {
-		if ($this->request->hasArgument('recordUid')) {
-			$record = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow('*', 'tt_content', 'uid = ' . (int)$this->request->getArgument('recordUid'));
-			$limit = $record['tx_RssOutput_limit'] ? (int)$record['tx_RssOutput_limit'] : 10;
-		}
-		else {
-			$limit = $this->contentObjectData['tx_RssOutput_limit'] ? (int)$this->contentObjectData['tx_RssOutput_limit'] : 10;
-		}
-		if ($this->request->hasArgument('offset')) {
-			$offset = (int)$this->request->getArgument('offset');
-			$limit = $offset . ' , ' . $limit;
+	public function advertizeAction() {
+		// Init variables
+		$result = '';
+		$yaml = new sfYamlParser();
+
+		// Get settings
+		$settings = $this->configurationManager->getConfiguration('Settings');
+
+		$listOfUids = explode(',', $settings['listOfFeeds']);
+		foreach ($listOfUids as $uid) {
+			$feed = $this->feedRepository->findByUid($uid);
+
+			$configuration = $yaml->parse($feed['configuration']);
+			$this->checkConfiguration($configuration);
+
+			$feedUrl = $configuration['baseURL'];
+
+			/** @var $contentObject tslib_cObj */
+			$config['returnLast'] = 'url';
+			$config['parameter.']['data'] = 'leveluid:0';
+			$config['additionalParams'] = '&type=9090&uid=' . $uid;
+			$contentObject = $this->configurationManager->getcontentObject();
+			$feedUrl =
+
+			$result .= '<link rel="alternate"
+				type="application/atom+xml"
+				title="' . $feed['title'] . '"
+				href="' . $contentObject->typolink('', $config) . '" />' . chr(10);
 		}
 
-		$this->view->assign('data', $record);
-		$this->view->assign('loadJquery', $this->configuration['loadJquery']);
-		$this->view->assign('images', $this->imageRepository->findAll($this->request, $limit));
+		return $result;
 	}
 }
 

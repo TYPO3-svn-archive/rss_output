@@ -144,7 +144,6 @@ class Tx_RssOutput_Domain_Repository_RecordRepository {
 			die();
 		}
 
-		#$result = $this->db->exec_SELECTquery($fieldSQL, $table, $clause, '', $order, $limitSQL);
 		$result = $this->db->exec_SELECTgetRows($selectPart, $table, $clause, '', $order, $limitSQL);
 		return $result;
 	}

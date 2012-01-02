@@ -7,8 +7,7 @@ Tx_Extbase_Utility_Extension::configurePlugin(
 	$_EXTKEY,
 	'Pi1',
 	array(
-		'Feed' => 'index',
-
+		'Feed' => 'index,advertize',
 	),
 	// non-cacheable actions
 	array(
