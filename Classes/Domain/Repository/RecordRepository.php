@@ -69,18 +69,18 @@ class Tx_RssOutput_Domain_Repository_RecordRepository {
 		///////////////////////////////
 		// Select processing
 		///////////////////////////////
-		$title = isset($config['title']) ? $config['title'] : 'header';
-		$summary = isset($config['summary']) ? $config['summary'] : 'bodytext';
-		$published = isset($config['published']) ? $config['published'] : 'tstamp';
-		$updated = isset($config['updated']) ? $config['updated'] : 'tstamp';
-		$uid = isset($config['uid']) ? $config['uid'] : 'uid';
+		$fields = $config['field'];
+		$title = !empty($fields['title']) ? $fields['title'] : 'header';
+		$summary = !empty($fields['summary']) ? $fields['summary'] : 'bodytext';
+		$published = !empty($fields['published']) ? $fields['published'] : 'tstamp';
+		$updated = !empty($fields['updated']) ? $fields['updated'] : 'tstamp';
+		$uid = !empty($fields['uid']) ? $fields['uid'] : 'uid';
 		$headerLayout = $table == 'tt_content' ? ', header_layout' : '';
-		$pid = isset($config['pid']) ? $config['pid'] : 'pid';
-		$extraFields = isset($config['extraFields']) ? ", " . $config['extraFields'] : '';
+		$pid = !empty($fields['pid']) ? $fields['pid'] : 'pid';
+		$additionalFields = !empty($config['additionalFields']) ? ", " . $config['additionalFields'] : '';
 
-		$fieldSQL = $pid . ' as pid, ' . $uid . ' as uid, ' . $title . ' as title, ' . $summary . ' as summary, '
-			. $published . ' as published, ' . $updated . ' as updated' . $headerLayout . $extraFields;
-
+		$selectPart = $pid . ' as pid, ' . $uid . ' as uid, ' . $title . ' as title, ' . $summary . ' as summary, '
+			. $published . ' as published, ' . $updated . ' as updated' . $headerLayout . $additionalFields;
 
 		///////////////////////////////
 		// Clause processing
@@ -107,8 +107,8 @@ class Tx_RssOutput_Domain_Repository_RecordRepository {
 		}
 
 		// Adds additional SQL
-		if (!empty($config['additionalClause'])) {
-			$clause .= ' ' . $config['additionalClause'] . ' ';
+		if (!empty($config['additionalConditions'])) {
+			$clause .= ' ' . $config['additionalConditions'] . ' ';
 		}
 
 		// Only return selected language content
@@ -134,18 +134,18 @@ class Tx_RssOutput_Domain_Repository_RecordRepository {
 		///////////////////////////////
 		$log = !empty($config['log']) ? $config['log'] : FALSE;
 		if ($log) {
-			$request = $this->db->SELECTquery($fieldSQL, $table, $clause, '', $order, $limitSQL);
+			$request = $this->db->SELECTquery($selectPart, $table, $clause, '', $order, $limitSQL);
 			t3lib_div::devLog('RSS query: ' . $request, 'rss_output', 0);
 		}
 		$debug = !empty($config['debug']) ? $config['debug'] : FALSE;
 		if ($debug) {
-			$request = $this->db->SELECTquery($fieldSQL, $table, $clause, '', $order, $limitSQL);
+			$request = $this->db->SELECTquery($selectPart, $table, $clause, '', $order, $limitSQL);
 			t3lib_utility_Debug::debug($request, "debug");
 			die();
 		}
 
 		#$result = $this->db->exec_SELECTquery($fieldSQL, $table, $clause, '', $order, $limitSQL);
-		$result = $this->db->exec_SELECTgetRows($fieldSQL, $table, $clause, '', $order, $limitSQL);
+		$result = $this->db->exec_SELECTgetRows($selectPart, $table, $clause, '', $order, $limitSQL);
 		return $result;
 	}
 

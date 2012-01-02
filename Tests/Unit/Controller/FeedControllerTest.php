@@ -1,6 +1,6 @@
 <?php
 
-/***************************************************************
+/* * *************************************************************
  *  Copyright notice
  *  (c) 2011 Fabien Udriot <fabien.udriot
  * @ecodev.ch>, Ecodev
@@ -17,7 +17,7 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * ************************************************************* */
 
 /**
  * Test case for class Tx_RssOutput_Controller_FeedControllerTest.
@@ -68,12 +68,30 @@ class Tx_RssOutput_Controller_FeedControllerTest extends Tx_Extbase_Tests_Unit_B
 		$this->testingFramework->createFakeFrontEnd(1);
 		// still looking how to test a protected function
 		#var_dump($this->fixture->getLanguage());
-
 		// how can we get the language config? 'config.' is empty
 		#var_dump($GLOBALS['TSFE']->tmpl->setup['config.']);
 
 		$this->markTestIncomplete();
 	}
+
+	/**
+	 * @test
+	 * @expectedException Tx_RssOutput_Exception_InvalidConfigurationException
+	 */
+	public function checkConfigurationException() {
+
+		$method = new ReflectionMethod(
+			'Tx_RssOutput_Controller_FeedController', 'checkConfiguration'
+		);
+
+		$method->setAccessible(TRUE);
+
+		$defaultConfiguration = array();
+		#$defaultConfiguration['baseURL'] = 'http://test.com';
+
+		$method->invokeArgs(new Tx_RssOutput_Controller_FeedController, $defaultConfiguration);
+	}
+
 }
 
 ?>

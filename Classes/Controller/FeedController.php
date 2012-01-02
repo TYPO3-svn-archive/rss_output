@@ -136,8 +136,14 @@ class Tx_RssOutput_Controller_FeedController extends Tx_Extbase_MVC_Controller_A
 		$yaml = new sfYamlParser();
 		$configuration = $yaml->parse($feed['configuration']);
 
+		if (empty($configuration['baseURL'])) {
+			throw new Exception('Exception 1325478745: missing baseUrl setting ', 1325478745);
+		}
+
 		// Add dynamic configuration
 		$configuration['sys_language_uid'] = $this->getLanguage();
+
+		$this->checkConfiguration($configuration);
 
 		$entries = $this->recordRepository->find($configuration);
 
@@ -147,8 +153,21 @@ class Tx_RssOutput_Controller_FeedController extends Tx_Extbase_MVC_Controller_A
 		$this->view->assign('entries', $entries);
 		$this->view->assign('date', date('c'));
 		$this->view->assign('url', t3lib_div::getIndpEnv('REQUEST_URI'));
+		$this->view->assign('configuration', $configuration);
 		$host = !empty($configuration['host']) ? $configuration['host'] : t3lib_div::getIndpEnv('TYPO3_SITE_URL');
-		$this->view->assign('host', rtrim($host, '/'));
+		$this->view->assign('host', rtrim($configuration['baseURL'], '/'));
+	}
+
+	/**
+	 * Check whether the configuration is correct
+	 *
+	 * @param array $configuration
+	 */
+	protected function checkConfiguration($configuration) {
+
+		if (empty($configuration['baseURL'])) {
+			throw new Tx_RssOutput_Exception_InvalidConfigurationException('Exception 1325478745: missing baseURL setting ', 1325478745);
+		}
 	}
 
 	/**
