@@ -156,7 +156,7 @@ class Tx_RssOutput_Controller_FeedController extends Tx_Extbase_MVC_Controller_A
 	 *
 	 * @param array $configuration
 	 */
-	protected function checkConfiguration($configuration) {
+	protected function checkConfiguration(array $configuration = array()) {
 		if (empty($configuration['baseURL'])) {
 			throw new Tx_RssOutput_Exception_InvalidConfigurationException('Exception 1325478745: missing baseURL setting ', 1325478745);
 		}

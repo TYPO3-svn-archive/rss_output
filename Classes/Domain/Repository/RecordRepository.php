@@ -145,6 +145,12 @@ class Tx_RssOutput_Domain_Repository_RecordRepository {
 		}
 
 		$result = $this->db->exec_SELECTgetRows($selectPart, $table, $clause, '', $order, $limitSQL);
+
+		// Raises an error if wrong SQL is detected
+		if ($result === NULL) {
+			$request = $this->db->SELECTquery($selectPart, $table, $clause, '', $order, $limitSQL);
+			throw new Tx_RssOutput_Exception_InvalidQueryException('Exception 1325574994: bad query: ' . $request, 1325574994);
+		}
 		return $result;
 	}
 
