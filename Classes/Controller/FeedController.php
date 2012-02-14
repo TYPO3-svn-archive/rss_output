@@ -147,7 +147,7 @@ class Tx_RssOutput_Controller_FeedController extends Tx_Extbase_MVC_Controller_A
 		$this->view->assign('date', date('c'));
 		$this->view->assign('url', t3lib_div::getIndpEnv('REQUEST_URI'));
 		$this->view->assign('configuration', $configuration);
-		$host = !empty($configuration['host']) ? $configuration['host'] : t3lib_div::getIndpEnv('TYPO3_SITE_URL');
+		//$host = !empty($configuration['host']) ? $configuration['host'] : t3lib_div::getIndpEnv('TYPO3_SITE_URL');
 		$this->view->assign('host', rtrim($configuration['baseURL'], '/'));
 	}
 
@@ -175,7 +175,7 @@ class Tx_RssOutput_Controller_FeedController extends Tx_Extbase_MVC_Controller_A
 		// Get settings
 		$settings = $this->configurationManager->getConfiguration('Settings');
 
-		$listOfUids = explode(',', $settings['listOfFeeds']);
+		$listOfUids = explode(',', $settings['listOfUid']);
 		foreach ($listOfUids as $uid) {
 			$feed = $this->feedRepository->findByUid($uid);
 

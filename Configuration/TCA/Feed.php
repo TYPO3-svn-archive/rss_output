@@ -90,10 +90,11 @@ $TCA['tx_rssoutput_feed'] = array(
 # Mandatory fields
 table: tt_content
 rootPid: rootPid
+baseURL: http://myhost/
 
 # Optional fields
 numberOfItems: 10
-host: http://myhost/
+rootPid: 1
 ',
 				'eval' => 'trim',
 			),
