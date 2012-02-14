@@ -61,9 +61,9 @@ class Tx_RssOutput_Domain_Repository_RecordRepository {
 		}
 
 		/* Defines default value */
-		$table = $config['table'] != '' ? $config['table'] : 'tt_content';
+		$config['table'] = $config['table'] != '' ? $config['table'] : 'tt_content';
 
-		if ($table == 'tt_content' && empty($config['rootPid'])) {
+		if ($config['table'] == 'tt_content' && empty($config['rootPid'])) {
 			throw new Exception('Exception 1324566898: no rootPid value defined in configuration field.', 1324566898);
 		}
 		///////////////////////////////
@@ -75,7 +75,7 @@ class Tx_RssOutput_Domain_Repository_RecordRepository {
 		$published = !empty($fields['published']) ? $fields['published'] : 'tstamp';
 		$updated = !empty($fields['updated']) ? $fields['updated'] : 'tstamp';
 		$uid = !empty($fields['uid']) ? $fields['uid'] : 'uid';
-		$headerLayout = $table == 'tt_content' ? ', header_layout' : '';
+		$headerLayout = $config['table'] == 'tt_content' ? ', header_layout' : '';
 		$pid = !empty($fields['pid']) ? $fields['pid'] : 'pid';
 		$additionalFields = !empty($config['additionalFields']) ? ", " . $config['additionalFields'] : '';
 
@@ -85,47 +85,12 @@ class Tx_RssOutput_Domain_Repository_RecordRepository {
 		///////////////////////////////
 		// Clause processing
 		///////////////////////////////
-		$clause = '1=1 ' . tslib_cObj::enableFields($table);
-
-		$rootPid = $config['rootPid'];
-
-		// Checks if the page is in the root line
-		if ($rootPid > 0) {
-			$pages = $this->getAllPages($rootPid);
-			$pageClauseSQL = 'pid=' . $rootPid;
-			foreach ($pages as $page) {
-				$pageClauseSQL .= ' OR pid=' . $page['uid'];
-			}
-
-			// Adds additional pid's
-			if (isset($config['additionalPids']) && $config['additionalPids'] != '') {
-				foreach (explode(',', $config['additionalPids']) as $pid) {
-					$pageClauseSQL .= ' OR pid=' . $pid;
-				}
-			}
-			$clause .= ' AND (' . $pageClauseSQL . ')'; #merge of the two clauses
-		}
-
-		// Adds additional SQL
-		if (!empty($config['additionalConditions'])) {
-			$clause .= ' ' . $config['additionalConditions'] . ' ';
-		}
-		if ($table == 'tt_content' && !$config['includeAll']) {
-			$clause .= ' AND tx_rssoutput_includeinfeed = 1 ';
-		}
-
-		// Only return selected language content
-		if (!empty($configuration['sys_language_uid'])) {
-			$clause .= ' AND sys_language_uid=' . $configuration['sys_language_uid'];
-		}
+		$clause = $this->getClause($config);
 
 		///////////////////////////////
 		// Order processing
 		///////////////////////////////
-		$order = 'tstamp DESC';
-		if (isset($config['orderBy'])) {
-			$order = $config['orderBy'];
-		}
+		$order = $this->getOrder($config);
 
 		///////////////////////////////
 		// Limit processing
@@ -137,24 +102,90 @@ class Tx_RssOutput_Domain_Repository_RecordRepository {
 		///////////////////////////////
 		$log = !empty($config['log']) ? $config['log'] : FALSE;
 		if ($log) {
-			$request = $this->db->SELECTquery($selectPart, $table, $clause, '', $order, $limitSQL);
+			$request = $this->db->SELECTquery($selectPart, $config['table'], $clause, '', $order, $limitSQL);
 			t3lib_div::devLog('RSS query: ' . $request, 'rss_output', 0);
 		}
 		$debug = !empty($config['debug']) ? $config['debug'] : FALSE;
 		if ($debug) {
-			$request = $this->db->SELECTquery($selectPart, $table, $clause, '', $order, $limitSQL);
+			$request = $this->db->SELECTquery($selectPart, $config['table'], $clause, '', $order, $limitSQL);
 			t3lib_utility_Debug::debug($request, "debug");
 			die();
 		}
 
-		$result = $this->db->exec_SELECTgetRows($selectPart, $table, $clause, '', $order, $limitSQL);
+		$result = $this->db->exec_SELECTgetRows($selectPart, $config['table'], $clause, '', $order, $limitSQL);
 
 		// Raises an error if wrong SQL is detected
 		if ($result === NULL) {
-			$request = $this->db->SELECTquery($selectPart, $table, $clause, '', $order, $limitSQL);
+			$request = $this->db->SELECTquery($selectPart, $config['table'], $clause, '', $order, $limitSQL);
 			throw new Tx_RssOutput_Exception_InvalidQueryException('Exception 1325574994: bad query: ' . $request, 1325574994);
 		}
 		return $result;
+	}
+
+	/**
+	 * Get the Order clause
+	 *
+	 * @param $config
+	 * @return string
+	 */
+	protected function getOrder($config) {
+		$order = 'tstamp DESC';
+		if (isset($config['orderBy'])) {
+			$order = $config['orderBy'];
+		}
+		return $order;
+	}
+	/**
+	 * Get the a page clause
+	 *
+	 * @param $pages
+	 * @param $config
+	 * @return string
+	 */
+	protected function getPageClause($pages, $config) {
+		$_clause = 'pid=' . $config['rootPid'];
+		foreach ($pages as $page) {
+			$_clause .= ' OR pid=' . $page['uid'];
+		}
+
+		// Adds additional pid's
+		if (isset($config['additionalPids']) && $config['additionalPids'] != '') {
+			foreach (explode(',', $config['additionalPids']) as $pid) {
+				$_clause .= ' OR pid=' . $pid;
+			}
+		}
+		$clause = ' AND (' . $_clause . ')'; #merge of the two clauses
+		return $clause;
+	}
+	/**
+	 * Get the clause part of the query
+	 *
+	 * @param array $config An array containing configuration
+	 * @return string
+	 */
+	protected function getClause($config) {
+		$clause = '1=1 ' . tslib_cObj::enableFields($config['table']);
+
+		// Checks if the page is in the root line
+		if ($config['rootPid'] > 0) {
+			$pages = $this->getAllPages($config['rootPid']);
+			$clause .= $this->getPageClause($pages, $config);
+		}
+
+		// Adds additional SQL
+		if (!empty($config['additionalConditions'])) {
+			$clause .= ' ' . $config['additionalConditions'] . ' ';
+		}
+		if ($config['table'] == 'tt_content' && !$config['includeAll']) {
+			$clause .= ' AND tx_rssoutput_includeinfeed = 1 ';
+		}
+
+		// Only return selected language content
+		if (!empty($configuration['sys_language_uid'])) {
+			$clause .= ' AND sys_language_uid=' . $configuration['sys_language_uid'];
+		}
+
+		return $clause;
 	}
 
 	/**
@@ -162,10 +193,9 @@ class Tx_RssOutput_Domain_Repository_RecordRepository {
 	 *
 	 * @param	integer		$pid: mother page's pid
 	 * @param	array		$arrayOfPid: referenced array of children's pid
-	 * @access	private
 	 * @return	array		Array of all pid being children of <tt>$pid</tt>
 	 */
-	function getAllPages($pid, &$arrayOfPid = array()) {
+	protected function getAllPages($pid, &$arrayOfPid = array()) {
 		$pages = tx_div::db()->exec_SELECTgetRows('uid', 'pages', 'deleted = 0 AND hidden = 0 AND pid = ' . $pid);
 		$arrayOfPid = array_merge($pages, $arrayOfPid);
 		if (count($pages) > 0) {
