@@ -52,7 +52,7 @@ class Tx_RssOutput_Domain_Repository_RecordRepositoryTest extends Tx_Extbase_Tes
 			'rootPid' => '0',
 			'baseURL' => 'http://www.eren.local/',
 			'numberOfItems' => '10',
-			'includeAll' => 'false',
+			'includeAll' => FALSE,
 		);
 		$this->testingFramework = new Tx_Phpunit_Framework('tx_rssoutput');
 		$this->fixture = new Tx_RssOutput_Domain_Repository_RecordRepository();
@@ -151,18 +151,17 @@ class Tx_RssOutput_Domain_Repository_RecordRepositoryTest extends Tx_Extbase_Tes
 			array($this->configuration));
 
 		$defaultPart = tslib_cObj::enableFields($this->configuration['table']);
-		$expectedClause = "1=1 " . $defaultPart;
+		$expectedClause = "1=1 " . $defaultPart . ' AND tx_rssoutput_includeinfeed = 1';
 
-		$this->assertEquals($clause, $expectedClause);
+		$this->assertEquals(trim($clause), trim($expectedClause));
 	}
 
 	/**
 	 * @test
 	 */
 	public function getPageUidWithinATree() {
-		// create a fake tree structure
+		// Generate a fake tree structure
 		$rootPageId = $this->createFakeTree();
-		$this->configuration['rootPid'] = $rootPageId;
 
 		$method = new ReflectionMethod(
 			'Tx_RssOutput_Domain_Repository_RecordRepository', 'getAllPages'
@@ -179,7 +178,68 @@ class Tx_RssOutput_Domain_Repository_RecordRepositoryTest extends Tx_Extbase_Tes
 	}
 
 	/**
-	 * Generate a fake root tree
+	 * @test
+	 */
+	public function findFakeRecordsWithEmptyReturn() {
+		$this->createFakeTree();
+		$records = $this->fixture->find($this->configuration);
+		$this->assertEmpty($records);
+	}
+
+	/**
+	 * @test
+	 */
+	public function findRecordsWithEmptyReturnBecauseOfIncludeAllEqualFalse() {
+		$rootPageId = $this->createFakeTree();
+
+		$recordData = array(
+			'header' => 'ITEST',
+			'bodytext' => 'ITEST',
+			'tx_rssoutput_includeinfeed' => '0',
+		);
+
+		$this->testingFramework->createContentElement($rootPageId, $recordData);
+		$records = $this->fixture->find($this->configuration);
+		$this->assertEmpty($records);
+	}
+
+	/**
+	 * @test
+	 */
+	public function findRecordsWithValidReturnBecauseOfIncludeAllEqualTrue() {
+		$rootPageId = $this->createFakeTree();
+
+		$recordData = array(
+			'header' => 'ITEST',
+			'bodytext' => 'ITEST',
+			'tx_rssoutput_includeinfeed' => '1',
+		);
+
+		$this->testingFramework->createContentElement($rootPageId, $recordData);
+		$records = $this->fixture->find($this->configuration);
+		$this->assertEquals(1, count($records));
+	}
+
+	/**
+	 * @test
+	 * @expectedException Tx_RssOutput_Exception_MissingConfigurationException
+	 */
+	public function missingTableException() {
+		unset($this->configuration['table']);
+		$this->fixture->find($this->configuration);
+	}
+
+	/**
+	 * @test
+	 * @expectedException Tx_RssOutput_Exception_MissingConfigurationException
+	 */
+	public function missingPidRootException() {
+		unset($this->configuration['pidRoot']);
+		$this->fixture->find($this->configuration);
+	}
+
+	/**
+	 * Generate a fake root tree for internal use
 	 */
 	protected function createFakeTree() {
 
@@ -190,24 +250,8 @@ class Tx_RssOutput_Domain_Repository_RecordRepositoryTest extends Tx_Extbase_Tes
 		$this->testingFramework->createFrontEndPage($subPageId);
 		$this->testingFramework->createFrontEndPage($subPageId);
 
+		$this->configuration['rootPid'] = $pageId;
 		return $pageId;
-	}
-	
-	/**
-	 * @test
-	 */
-	public function findFakeRecord() {
-		$tableName = 'tx_rssoutput_feed';
-		$recordData = array(
-			'title' => 'ITEST',
-			'description' => 'ITEST',
-			'description' => 'ITEST',
-			'number_of_items' => '10',
-			'configuration' => '
-
-			',
-		);
-		#$recordUid = $this->testingFramework->createRecord($tableName, $recordData);
 	}
 }
 

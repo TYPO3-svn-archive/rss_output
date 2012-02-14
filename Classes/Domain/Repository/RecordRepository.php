@@ -57,14 +57,15 @@ class Tx_RssOutput_Domain_Repository_RecordRepository {
 
 		// Makes sure the uid is valid
 		if (empty($config['table'])) {
-			throw new Exception('Exception 1324559684: no table value defined in configuration field.', 1324559684);
+			throw new Tx_RssOutput_Exception_MissingConfigurationException('Exception 1324559684: no table value defined in configuration
+			field.', 1324559684);
 		}
 
 		/* Defines default value */
 		$config['table'] = $config['table'] != '' ? $config['table'] : 'tt_content';
 
 		if ($config['table'] == 'tt_content' && empty($config['rootPid'])) {
-			throw new Exception('Exception 1324566898: no rootPid value defined in configuration field.', 1324566898);
+			throw new Tx_RssOutput_Exception_MissingConfigurationException('Exception 1324566898: no rootPid value defined in configuration field.', 1324566898);
 		}
 		///////////////////////////////
 		// Select processing
@@ -164,7 +165,9 @@ class Tx_RssOutput_Domain_Repository_RecordRepository {
 	 * @return string
 	 */
 	protected function getClause($config) {
-		$clause = '1=1 ' . tslib_cObj::enableFields($config['table']);
+		/** @var $contentObject tslib_cObj  */
+		$contentObject = t3lib_div::makeInstance('tslib_cObj');
+		$clause = '1=1 ' . $contentObject->enableFields($config['table']);
 
 		// Checks if the page is in the root line
 		if ($config['rootPid'] > 0) {
@@ -176,6 +179,7 @@ class Tx_RssOutput_Domain_Repository_RecordRepository {
 		if (!empty($config['additionalConditions'])) {
 			$clause .= ' ' . $config['additionalConditions'] . ' ';
 		}
+
 		if ($config['table'] == 'tt_content' && !$config['includeAll']) {
 			$clause .= ' AND tx_rssoutput_includeinfeed = 1 ';
 		}
