@@ -65,7 +65,7 @@ page_9090 {
 # GENERATE THE FEED tt_news
 ###############################
 
-
+/*
 feed3 = PAGE
 feed3 {
   typeNum = 103
@@ -97,3 +97,5 @@ feed3 {
 	admPanel = 0
   }
 }
+
+*/

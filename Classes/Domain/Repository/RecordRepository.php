@@ -111,6 +111,10 @@ class Tx_RssOutput_Domain_Repository_RecordRepository {
 			$clause .= ' ' . $config['additionalConditions'] . ' ';
 		}
 
+		if ($table == 'tt_content') {
+			$clause .= ' AND tx_rssoutput_includeinfeed = 1 ';
+		}
+
 		// Only return selected language content
 		if (!empty($configuration['sys_language_uid'])) {
 			$clause .= ' AND sys_language_uid=' . $configuration['sys_language_uid'];
