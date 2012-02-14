@@ -59,7 +59,7 @@ class Tx_RssOutput_Domain_Repository_FeedRepository {
 
 		// Makes sure the record exists
 		if (empty($record)) {
-			throw new Exception("Exception 1323921662: no record found for '$uid'. Record exists? Hidden or deleted? ", 1323921662);
+			throw new Tx_RssOutput_Exception_NotExistingRecordException("Exception 1323921662: no record found for '$uid'. Record exists? Hidden or deleted? ", 1323921662);
 		}
 
 		return $record;

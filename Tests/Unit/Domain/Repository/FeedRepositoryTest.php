@@ -52,6 +52,14 @@ class Tx_RssOutput_Domain_Repository_FeedRepositoryTest extends Tx_Extbase_Tests
 
 	/**
 	 * @test
+	 * @expectedException Tx_RssOutput_Exception_NotExistingRecordException
+	 */
+	public function findByUidException() {
+		$this->fixture->findByUid(0);
+	}
+
+	/**
+	 * @test
 	 */
 	public function findByUid() {
 		$tableName = 'tx_rssoutput_feed';
