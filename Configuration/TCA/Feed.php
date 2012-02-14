@@ -87,15 +87,20 @@ $TCA['tx_rssoutput_feed'] = array(
 			'config' => array(
 				'type' => 'text',
 				'default' => '
-# Mandatory fields
+# mandatory name of the table to get information from
 table: tt_content
-rootPid: rootPid
+
+# mandatory for tt_content: add a pid root, default null
+rootPid: 1
+
+# mandatory hostname
 baseURL: http://myhost/
 
-# Optional fields
-numberOfItems: 10  # for all: number of items in the feed, default 10
-rootPid: 1         # for tt_content: add a pid root, default null
-includeAll: true   # for tt_content: Override the check to include only marked records, default false.
+# optional for all: number of items in the feed, default 10
+numberOfItems: 10
+
+# optional for tt_content: Override the check to include only marked records, default false.
+includeAll: true
 ',
 				'eval' => 'trim',
 			),
