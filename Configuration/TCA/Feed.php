@@ -93,8 +93,9 @@ rootPid: rootPid
 baseURL: http://myhost/
 
 # Optional fields
-numberOfItems: 10
-rootPid: 1
+numberOfItems: 10  # for all: number of items in the feed, default 10
+rootPid: 1         # for tt_content: add a pid root, default null
+includeAll: true   # for tt_content: Override the check to include only marked records, default false.
 ',
 				'eval' => 'trim',
 			),

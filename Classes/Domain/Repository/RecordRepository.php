@@ -110,8 +110,7 @@ class Tx_RssOutput_Domain_Repository_RecordRepository {
 		if (!empty($config['additionalConditions'])) {
 			$clause .= ' ' . $config['additionalConditions'] . ' ';
 		}
-
-		if ($table == 'tt_content') {
+		if ($table == 'tt_content' && !$config['includeAll']) {
 			$clause .= ' AND tx_rssoutput_includeinfeed = 1 ';
 		}
 
